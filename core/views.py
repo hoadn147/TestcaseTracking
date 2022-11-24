@@ -1,15 +1,15 @@
-from django.shortcuts import render
-from django.contrib.auth.models import User, auth
-from django.http import HttpResponse
-from rest_framework import generics, status, viewsets
+from rest_framework import generics, status
 from rest_framework.response import Response
-from .serializers import SignupSerializer, UserSerializer, LogOutAPISerializer, LoginSerializer
+from .serializers import SignupSerializer, UserSerializer, LogOutAPISerializer, LoginSerializer , CreateTestcaseSerializer
+from rest_framework.permissions import AllowAny
+from .CustomRenderer import CustomRenderer
 
 import logging
 
 
 class signupView(generics.GenericAPIView):
     serializer_class = SignupSerializer
+    renderer_classes = [CustomRenderer]
 
     def post(self, request):
         logging.info('SignUp start')
@@ -17,7 +17,7 @@ class signupView(generics.GenericAPIView):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-
+        
         response_data = {
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
 
@@ -28,9 +28,8 @@ class signupView(generics.GenericAPIView):
 
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
-
-    def get(self, request):
-        return render(request, status=status.HTTP_200_OK, template_name='login.html')
+    permission_classes = [AllowAny]
+    renderer_classes = [CustomRenderer]
 
     def post(self, request):
         logging.info("LoginUser start")
@@ -51,7 +50,20 @@ class LoginView(generics.GenericAPIView):
 
 class LogOutView(generics.GenericAPIView):
     serializer_class = LogOutAPISerializer
+    renderer_classes = [CustomRenderer]
 
     def post(self, request):
         user = request.user
         return Response({'data': {'message': 'Logout success'}}, status=status.HTTP_200_OK)
+    
+class CreateTestCaseView(generics.GenericAPIView):
+    serializer_class = CreateTestcaseSerializer
+    renderer_classes = [CustomRenderer]
+    
+    def post(self, request):
+        data = request.data 
+        serializer = self.serializer_class()
+        testcase = serializer.create(validated_data=data)
+        
+        return Response({'data': CreateTestcaseSerializer(testcase, context=self.get_serializer_context()).data}, status=status.HTTP_201_CREATED)
+    
