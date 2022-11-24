@@ -28,15 +28,7 @@ venv
 *.mo
 *.pot
 
-# Django stuff:
-staticfiles/
-
 # Logs
 logs
 *.log
 
-# dev file
-.envs
-entrypoint.sh
-template
-nginx/ssl
