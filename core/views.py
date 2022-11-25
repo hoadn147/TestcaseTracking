@@ -1,6 +1,7 @@
+from sqlite3 import IntegrityError
 from rest_framework import generics, status
 from rest_framework.response import Response
-from .serializers import SignupSerializer, UserSerializer, LogOutAPISerializer, LoginSerializer , CreateTestcaseSerializer
+from .serializers import FilterRequirementSerializer, SignupSerializer, UserSerializer, LogOutAPISerializer, LoginSerializer , CreateTestcaseSerializer
 from rest_framework.permissions import AllowAny
 from .CustomRenderer import CustomRenderer
 
@@ -61,9 +62,34 @@ class CreateTestCaseView(generics.GenericAPIView):
     renderer_classes = [CustomRenderer]
     
     def post(self, request):
-        data = request.data 
-        serializer = self.serializer_class()
-        testcase = serializer.create(validated_data=data)
-        
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            testcase = serializer.create(validated_data=serializer.validated_data)
+        except IntegrityError or ValueError as e:
+            return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'data': CreateTestcaseSerializer(testcase, context=self.get_serializer_context()).data}, status=status.HTTP_201_CREATED)
+
+
+class FilterRequirementView(generics.GenericAPIView):
+    serializer_class = FilterRequirementSerializer
+    renderer_classes = [CustomRenderer]
+    
+    def post(self, request):
+        data = request.data
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'data': serializer.validated_data}, status=status.HTTP_201_CREATED)
+    
+    def get(self, request):
+        data = request.GET
+        serializer = self.serializer_class(data=data)
+        print('2222222222222222222222222', serializer)
+        serializer.is_valid(raise_exception=True)
+        return Response({'data': serializer.data}, status=status.HTTP_200_OK)
+    
+    def update(self, request):
+        ...
     

@@ -25,6 +25,6 @@ class CustomRenderer(renderers.JSONRenderer):
             return json.dumps(
                 {
                     'data': data.get('data'),
-                    'exception': None
+                    'exception': data.get('exception', None)
                 }
             )

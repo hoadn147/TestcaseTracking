@@ -1,3 +1,4 @@
+from sqlite3 import IntegrityError
 from django.contrib.auth import authenticate
 from rest_framework.exceptions import AuthenticationFailed, APIException
 import logging
@@ -83,7 +84,7 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = subTab
         fields = ('id', 'testcase_id', 'req_id',
-                  'testcase_result', 'parent_tab', 'filter_id', 'user_id')
+                  'testcase_result', 'parent_tab', 'user_id')
         
     def validate(self, data):
         testcase_id = data.get('testcase_id',None)
@@ -102,31 +103,20 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
         req_id = validated_data.get('req_id', None)
         testcase_id = validated_data.get('testcase_id', None)
         testcase_result = validated_data.get('testcase_result', None)
-        filter_name = validated_data.get('filter_name', None)
         parent_tab = validated_data.get('parent_tab', None)
         user_id = validated_data.get('user_id')
 
-        try:
-            user = User.objects.get(pk=user_id)
-            if filter_name is not None:
-                filter_id = requirementFilter.objects.get(
-                    filter_name=filter_name)
-                return subTab.objects.create(
-                    user_id=user,
-                    req_id=req_id,
-                    testcase_id=testcase_id,
-                    testcase_result=testcase_result,
-                    parent_tab=parent_tab,
-                    filter_id=filter_id
-                )
-            else:
-                return subTab.objects.create(
-                    user=user,
-                    req_id=req_id,
-                    testcase_id=testcase_id,
-                    testcase_result=testcase_result,
-                    parent_tab=parent_tab
-                )
+        return subTab.objects.create(
+            user_id=user_id,
+            req_id=req_id,
+            testcase_id=testcase_id,
+            testcase_result=testcase_result,
+            parent_tab=parent_tab
+        )
 
-        except ValueError as e:
-            raise ValueError(f"{e}") from e
+        
+
+class FilterRequirementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = requirementFilter
+        fields = '__all__'
