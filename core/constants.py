@@ -5,3 +5,5 @@ class parentTabChoices(models.TextChoices):
         Complete =  'COMPLETE'
         Component = 'COMPONENT'
         Domain = 'DOMAIN'
+
+parent_tab_name = ['UNIT', 'COMPLETE', 'COMPONENT', 'DOMAIN']

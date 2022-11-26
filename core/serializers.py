@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 from django.contrib.auth import authenticate
-from rest_framework.exceptions import AuthenticationFailed, APIException
+from rest_framework.exceptions import AuthenticationFailed, APIException, NotFound
 import logging
 
 from rest_framework import serializers
@@ -79,12 +79,11 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
     req_id = serializers.CharField(max_length=255, required=True)
     testcase_id = serializers.CharField(max_length=255, required=True)
     testcase_result = serializers.CharField(max_length=255, required=True)
-    user_id = serializers.IntegerField(required=True)
 
     class Meta:
         model = subTab
         fields = ('id', 'testcase_id', 'req_id',
-                  'testcase_result', 'parent_tab', 'user_id')
+                  'testcase_result', 'parent_tab')
         
     def validate(self, data):
         testcase_id = data.get('testcase_id',None)
@@ -103,20 +102,55 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
         req_id = validated_data.get('req_id', None)
         testcase_id = validated_data.get('testcase_id', None)
         testcase_result = validated_data.get('testcase_result', None)
-        parent_tab = validated_data.get('parent_tab', None)
+        parent_tab_name = validated_data.get('parent_tab_name', None)
         user_id = validated_data.get('user_id')
+        
+        parent_tab_id = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
 
         return subTab.objects.create(
-            user_id=user_id,
             req_id=req_id,
             testcase_id=testcase_id,
             testcase_result=testcase_result,
-            parent_tab=parent_tab
-        )
+            parent_tab_id=parent_tab_id.id         
+        )     
 
-        
+class CreateTestcaseListSerializer(serializers.ListSerializer):
+    class Meta:
+        ...
+
 
 class FilterRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = requirementFilter
-        fields = '__all__'
+        fields = ('id', 'req_id', 'filter_name')
+        
+    def create(self, validated_data):
+        data = self.initial_data
+        user_id = data.get('user_id')
+        parent_tab_name = data.get('parent_tab_name')
+        req_id = data.get('req_id')
+        filter_name = data.get('filter_name')
+        try:
+            print(parent_tab_name)
+            print(user_id)
+            parent_tab = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
+        except ParentTab.DoesNotExist:
+            raise APIException("parent tab does not exist")
+        requirementFilter.objects.create(
+            parent_tab_id=parent_tab.id,
+            req_id=req_id,
+            filter_name=filter_name,
+        )
+        return data
+
+class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
+    class Meta:
+        models = requirementFilter
+        fields = ('id', 'req_id', 'filter_name', 'parent_tab_id')
+        
+    def validate(self, attrs):
+        filter_id = attrs.get('id')
+        try:
+            return requirementFilter.objects.get(pk=filter_id)
+        except requirementFilter.DoesNotExist as e :
+            raise NotFound(f"{e}") from e
