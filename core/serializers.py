@@ -83,7 +83,7 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
     class Meta:
         model = subTab
         fields = ('id', 'testcase_id', 'req_id',
-                  'testcase_result', 'parent_tab')
+                  'testcase_result', )
         
     def validate(self, data):
         testcase_id = data.get('testcase_id',None)
@@ -99,11 +99,12 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('testcase_id with req_id already exists')
 
     def create(self, validated_data):
-        req_id = validated_data.get('req_id', None)
-        testcase_id = validated_data.get('testcase_id', None)
-        testcase_result = validated_data.get('testcase_result', None)
-        parent_tab_name = validated_data.get('parent_tab_name', None)
-        user_id = validated_data.get('user_id')
+        data = self.initial_data
+        req_id = data.get('req_id', None)
+        testcase_id = data.get('testcase_id', None)
+        testcase_result = data.get('testcase_result', None)
+        parent_tab_name = data.get('parent_tab_name', None)
+        user_id = data.get('user_id')
         
         parent_tab_id = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
 
