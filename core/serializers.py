@@ -197,7 +197,7 @@ class TestCaseUpdateSerialize(serializers.ModelSerializer):
         req_id = data.get('req_id')
         testcase_result = data.get('testcase_result')
         subtab = subTab.objects.get(pk=id)
-        subTab.testcase_id = testcase_id
+        subtab.testcase_id = testcase_id
         subtab.testcase_result = testcase_result
         subtab.req_id = req_id
         subtab.save()
