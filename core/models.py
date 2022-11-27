@@ -42,9 +42,6 @@ class subTab(models.Model):
     def save(self, *args, **kwargs):  # new
         return super().save(*args, **kwargs)
 
-    def __str__(self) -> str:
-        return self.user.username
-
     class Meta:
         db_table = "sub_tab"
         unique_together = [["testcase_id", "req_id"]]

@@ -11,5 +11,6 @@ urlpatterns = [
     path('filter-requirement', FilterRequirementView.as_view(), name='filter-requirement'),
     path('filter-requirement-update', FilterRequirementUpdateView.as_view(), name= 'filter-requirement-update'),
     path('test-case-update', TestcaseUpdateView.as_view(), name= 'test-case-update'),
+    path('sub-tab-search', subTabSearchView.as_view(), name= 'sub-tab-search'),
     
 ]

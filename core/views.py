@@ -71,22 +71,21 @@ class CreateTestCaseView(generics.GenericAPIView):
         parent_tab_name = data.get('parent_tab_name')
         req_id = data.get('req_id')
         testcase_id = data.get('testcase_id')
-        
-        try :
+
+        try:
             if not user_id or not parent_tab_name:
                 return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 testcase = subTab.objects.filter(
-                req_id=req_id,
-                parent_tab__user_id=user_id,
-                parent_tab__tab_name=parent_tab_name,
-                testcase_id=testcase_id,
+                    req_id=req_id,
+                    parent_tab__user_id=user_id,
+                    parent_tab__tab_name=parent_tab_name,
+                    testcase_id=testcase_id,
                 )
             serializer = self.serializer_class(testcase, many=True)
             return Response({'data': serializer.data}, status=status.HTTP_200_OK)
-        except Exception as e: 
-             return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
-        
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
 
     def post(self, request):
         data = request.data
@@ -98,6 +97,17 @@ class CreateTestCaseView(generics.GenericAPIView):
         except IntegrityError or ValueError as e:
             return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'data': CreateTestcaseSerializer(testcase, context=self.get_serializer_context()).data}, status=status.HTTP_201_CREATED)
+    
+    def delete(self, request):
+        testcase_id = request.data.get('id')
+        try:
+            testcase = requirementFilter.objects.get(pk=testcase_id)
+
+        except filter.DoesNotExist :
+            raise APIException("Testcase does not exist")
+        testcase.delete()
+        return Response({'data': {'message': 'Delete success'}}, status=status.HTTP_200_OK)
+
 
 
 class FilterRequirementView(generics.GenericAPIView):
@@ -118,7 +128,7 @@ class FilterRequirementView(generics.GenericAPIView):
         data = request.GET
         user_id = data.get('user_id')
         parent_tab_name = data.get('parent_tab_name')
-        
+
         if not user_id or not parent_tab_name:
             return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
         if data.get('req_id') and data.get('filter_name'):
@@ -135,19 +145,31 @@ class FilterRequirementView(generics.GenericAPIView):
             )
         serializer = self.serializer_class(filter_requirement, many=True)
         return Response({'data': serializer.data}, status=status.HTTP_200_OK)
-    
+
+    def delete(self, request):
+        filter_id = request.data.get('id')
+        print(filter_id)
+        try:
+            filter = requirementFilter.objects.get(pk=filter_id)
+
+        except filter.DoesNotExist :
+            raise APIException("Filter does not exist")
+        filter.delete()
+        return Response({'data': {'message': 'Delete success'}}, status=status.HTTP_200_OK)
+
+
 class FilterRequirementUpdateView(generics.GenericAPIView):
     serializer_class = FilterRequirementUpdateSerialize
     renderer_classes = [CustomRenderer]
-    
-    def post(self, request): 
+
+    def post(self, request):
         data = request.data
         user_id = data.get('user_id')
         parent_tab_name = data.get('parent_tab_name')
-        
+
         if not user_id or not parent_tab_name:
             return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -156,23 +178,56 @@ class FilterRequirementUpdateView(generics.GenericAPIView):
             return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'data': filter}, status=status.HTTP_201_CREATED)
 
+
 class TestcaseUpdateView(generics.GenericAPIView):
     serializer_class = TestCaseUpdateSerialize
     renderer_classes = [CustomRenderer]
-    
-    def post(self, request): 
+
+    def post(self, request):
         data = request.data
-        print(data)
         user_id = data.get('user_id')
         parent_tab_name = data.get('parent_tab_name')
-          
         if not user_id or not parent_tab_name:
             return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = self.serializer_class(data=data)
         serializer.is_valid(raise_exception=True)
         try:
             subtab = serializer.update(serializer)
         except Exception as e:
             return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'data': subTab}, status=status.HTTP_201_CREATED)
+        return Response({'data': subtab}, status=status.HTTP_200_OK)
+
+
+class subTabSearchView(generics.GenericAPIView):
+    serializer_class = CreateTestcaseListSerializer
+    renderer_classes = [CustomRenderer]
+
+    def get(self, request):
+        data = request.GET
+        user_id = data.get('user_id')
+        parent_tab_name = data.get('parent_tab_name')
+        if not user_id or not parent_tab_name:
+            return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
+
+        filter_name = data.get('filter_name')
+        req_id = data.get('req_id')
+        if filter_name is None and req_id is None:
+            list_testcase = subTab.objects.filter(parent_tab__user_id=data.get('user_id'),
+                                                  parent_tab__tab_name=data.get('parent_tab_name'),)
+        elif filter is None:
+            list_testcase = subTab.objects.filter(parent_tab__user_id=data.get('user_id'),
+                                                  parent_tab__tab_name=data.get('parent_tab_name'), req_id=req_id)
+        elif req_id is None:
+            list_testcase = subTab.objects.filter(parent_tab__user_id=data.get('user_id'),
+                                                  parent_tab__tab_name=data.get('parent_tab_name'), req_id__in=req_id.split(', '))
+        else:
+            list_testcase = subTab.objects.filter(parent_tab__user_id=data.get('user_id'),
+                                                  parent_tab__tab_name=data.get('parent_tab_name'), req_id__in=req_id.split(', '), filter_name=filter_name)
+            
+        print(list_testcase)
+
+        serializers = self.serializer_class(data=list(list_testcase), many=True)
+        serializers.is_valid(raise_exception=True)
+
+        return Response({'data': serializers.data}, status=status.HTTP_200_OK)

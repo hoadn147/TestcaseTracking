@@ -115,10 +115,10 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
             parent_tab_id=parent_tab_id.id         
         )     
 
-class CreateTestcaseListSerializer(serializers.ListSerializer):
+class CreateTestcaseListSerializer(serializers.ModelSerializer):
     class Meta:
-        ...
-
+        model = subTab
+        fields = ('__all__')
 
 class FilterRequirementSerializer(serializers.ModelSerializer):
     class Meta:
@@ -155,7 +155,7 @@ class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
         except requirementFilter.DoesNotExist as e :
             raise NotFound(f"{e}") from e
         
-    def update(self, validated_data):
+    def update(self, data):
         data = self.initial_data
         id = data.get('id')
         req_id = data.get('req_id')
@@ -178,6 +178,9 @@ class TestCaseUpdateSerialize(serializers.ModelSerializer):
             return subTab.objects.get(pk=subtab_id)
         except subTab.DoesNotExist as e :
             raise NotFound(f"{e}") from e
+        
+    def get_unique_together_validators(self):
+        return []
         
     def update(self, validated_data):
         data = self.initial_data
