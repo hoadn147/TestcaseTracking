@@ -84,19 +84,21 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
         model = subTab
         fields = ('id', 'testcase_id', 'req_id',
                   'testcase_result', )
-        
+
     def validate(self, data):
-        testcase_id = data.get('testcase_id',None)
-        req_id = data.get('req_id',None)
+        testcase_id = data.get('testcase_id', None)
+        req_id = data.get('req_id', None)
 
         try:
-            obj = self.Meta.model.objects.get(testcase_id=testcase_id, req_id=req_id)
+            obj = self.Meta.model.objects.get(
+                testcase_id=testcase_id, req_id=req_id)
         except self.Meta.model.DoesNotExist:
             return data
         if self.instance and obj.id == self.instance.id:
             return data
         else:
-            raise serializers.ValidationError('testcase_id with req_id already exists')
+            raise serializers.ValidationError(
+                'testcase_id with req_id already exists')
 
     def create(self, validated_data):
         data = self.initial_data
@@ -105,26 +107,29 @@ class CreateTestcaseSerializer(serializers.ModelSerializer):
         testcase_result = data.get('testcase_result', None)
         parent_tab_name = data.get('parent_tab_name', None)
         user_id = data.get('user_id')
-        
-        parent_tab_id = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
+
+        parent_tab_id = ParentTab.objects.get(
+            user_id=user_id, tab_name=parent_tab_name)
 
         return subTab.objects.create(
             req_id=req_id,
             testcase_id=testcase_id,
             testcase_result=testcase_result,
-            parent_tab_id=parent_tab_id.id         
-        )     
+            parent_tab_id=parent_tab_id.id
+        )
+
 
 class CreateTestcaseListSerializer(serializers.ModelSerializer):
     class Meta:
         model = subTab
-        fields = ('__all__')
+        fields = '__all__'
+
 
 class FilterRequirementSerializer(serializers.ModelSerializer):
     class Meta:
         model = requirementFilter
         fields = ('id', 'req_id', 'filter_name')
-        
+
     def create(self, validated_data):
         data = self.initial_data
         user_id = data.get('user_id')
@@ -132,7 +137,8 @@ class FilterRequirementSerializer(serializers.ModelSerializer):
         req_id = data.get('req_id')
         filter_name = data.get('filter_name')
         try:
-            parent_tab = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
+            parent_tab = ParentTab.objects.get(
+                user_id=user_id, tab_name=parent_tab_name)
         except ParentTab.DoesNotExist:
             raise APIException("parent tab does not exist")
         requirementFilter.objects.create(
@@ -142,19 +148,20 @@ class FilterRequirementSerializer(serializers.ModelSerializer):
         )
         return data
 
+
 class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
     class Meta:
         model = requirementFilter
         fields = ('id', 'req_id', 'filter_name', 'parent_tab_id')
-        
+
     def validate(self, attrs):
         data = self.initial_data
         filter_id = data.get('id')
         try:
             return requirementFilter.objects.get(pk=filter_id)
-        except requirementFilter.DoesNotExist as e :
+        except requirementFilter.DoesNotExist as e:
             raise NotFound(f"{e}") from e
-        
+
     def update(self, data):
         data = self.initial_data
         id = data.get('id')
@@ -166,22 +173,23 @@ class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
         filter.save()
         return data
 
+
 class TestCaseUpdateSerialize(serializers.ModelSerializer):
     class Meta:
         model = subTab
-        fields = ('id', 'req_id', 'testcase_id','testcase_result')
-        
+        fields = ('id', 'req_id', 'testcase_id', 'testcase_result')
+
     def validate(self, attrs):
         data = self.initial_data
         subtab_id = data.get('id')
         try:
             return subTab.objects.get(pk=subtab_id)
-        except subTab.DoesNotExist as e :
+        except subTab.DoesNotExist as e:
             raise NotFound(f"{e}") from e
-        
+
     def get_unique_together_validators(self):
         return []
-        
+
     def update(self, validated_data):
         data = self.initial_data
         id = data.get('id')
