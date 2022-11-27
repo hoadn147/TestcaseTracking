@@ -11,7 +11,7 @@ import logging
 import json
 
 
-class signupView(generics.GenericAPIView):
+class SignupView(generics.GenericAPIView):
     serializer_class = SignupSerializer
     renderer_classes = [CustomRenderer]
 
@@ -197,7 +197,7 @@ class TestcaseUpdateView(generics.GenericAPIView):
         return Response({'data': subtab}, status=status.HTTP_200_OK)
 
 
-class subTabSearchView(generics.GenericAPIView):
+class SubTabSearchView(generics.GenericAPIView):
     serializer_class = CreateTestcaseListSerializer
     renderer_classes = [CustomRenderer]
 
@@ -239,8 +239,17 @@ class subTabSearchView(generics.GenericAPIView):
 
 
 class GetAllFilterView(generics.GenericAPIView):
-
+    serializer_class = GetAllFilterSerializer
     renderer_classes = [CustomRenderer]
 
     def get(self, request):
         data = request.GET
+        user_id = data.get('user_id')
+        parent_tab_name = data.get('parent_tab_name')
+        if not user_id or not parent_tab_name:
+            return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
+        filter_list = requirementFilter.objects.filter(parent_tab__user_id=user_id,
+                                                       parent_tab__tab_name=parent_tab_name)
+
+        serializers = self.serializer_class(filter_list, many=True)
+        return Response({'data': serializers.data}, status=status.HTTP_200_OK)

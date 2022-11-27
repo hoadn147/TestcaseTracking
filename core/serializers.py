@@ -202,3 +202,9 @@ class TestCaseUpdateSerialize(serializers.ModelSerializer):
         subtab.req_id = req_id
         subtab.save()
         return data
+
+
+class GetAllFilterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = requirementFilter
+        fields = '__all__'
