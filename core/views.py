@@ -207,18 +207,20 @@ class subTabSearchView(generics.GenericAPIView):
         parent_tab_name = data.get('parent_tab_name')
         filter_name = data.get('filter_name')
         req_id = data.get('req_id')
-        if not filter_name and not req_id :
+        if not filter_name and not req_id:
             query_set = subTab.objects.filter(parent_tab__user_id=user_id,
                                               parent_tab__tab_name=parent_tab_name,)
-        elif not filter_name :
+        elif not filter_name:
             query_set = subTab.objects.filter(parent_tab__user_id=user_id,
                                               parent_tab__tab_name=parent_tab_name, req_id__in=req_id.split(','))
-        elif not req_id :
-            req_filter = requirementFilter.objects.get(filter_name=filter_name, parent_tab__tab_name=parent_tab_name)
+        elif not req_id:
+            req_filter = requirementFilter.objects.get(
+                filter_name=filter_name, parent_tab__tab_name=parent_tab_name)
             query_set = subTab.objects.filter(parent_tab__user_id=user_id,
                                               parent_tab__tab_name=parent_tab_name, req_id__in=req_filter.req_id.split(','))
         else:
-            req_filter = requirementFilter.objects.get(filter_name=filter_name, parent_tab__tab_name=parent_tab_name)
+            req_filter = requirementFilter.objects.get(
+                filter_name=filter_name, parent_tab__tab_name=parent_tab_name)
             query_set = subTab.objects.filter(parent_tab__user_id=user_id,
                                               parent_tab__tab_name=parent_tab_name, req_id__in=req_filter.req_id.split(','), req_id__icontains=req_id)
 
@@ -234,11 +236,11 @@ class subTabSearchView(generics.GenericAPIView):
         serializers = self.serializer_class(list_testcase, many=True)
 
         return Response({'data': serializers.data}, status=status.HTTP_200_OK)
-    
+
+
 class GetAllFilterView(generics.GenericAPIView):
-    
-    renderer_classes= [CustomRenderer]
-    
+
+    renderer_classes = [CustomRenderer]
+
     def get(self, request):
         data = request.GET
-        
