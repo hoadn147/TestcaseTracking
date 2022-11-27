@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import FilterRequirementView, LoginView, LogOutView, signupView, CreateTestCaseView, FilterRequirementUpdateView
+from .views import *
 
 
 urlpatterns = [
@@ -9,5 +9,7 @@ urlpatterns = [
     path('logout', LogOutView.as_view(), name='logout'),
     path('testcase', CreateTestCaseView.as_view(), name='testcase'),
     path('filter-requirement', FilterRequirementView.as_view(), name='filter-requirement'),
-    path('filter-requirement-update', FilterRequirementUpdateView.as_view(), name= 'filter-requirement-update')
+    path('filter-requirement-update', FilterRequirementUpdateView.as_view(), name= 'filter-requirement-update'),
+    path('test-case-update', TestcaseUpdateView.as_view(), name= 'test-case-update'),
+    
 ]

@@ -3,7 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 
 from core.models import User, requirementFilter, subTab
-from .serializers import FilterRequirementSerializer, SignupSerializer, UserSerializer, LogOutAPISerializer, LoginSerializer, CreateTestcaseSerializer , FilterRequirementUpdateSerialize
+from .serializers import *
 from rest_framework.permissions import AllowAny
 from .CustomRenderer import CustomRenderer
 from django.db import transaction
@@ -155,3 +155,24 @@ class FilterRequirementUpdateView(generics.GenericAPIView):
         except Exception as e:
             return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({'data': filter}, status=status.HTTP_201_CREATED)
+
+class TestcaseUpdateView(generics.GenericAPIView):
+    serializer_class = TestCaseUpdateSerialize
+    renderer_classes = [CustomRenderer]
+    
+    def post(self, request): 
+        data = request.data
+        print(data)
+        user_id = data.get('user_id')
+        parent_tab_name = data.get('parent_tab_name')
+          
+        if not user_id or not parent_tab_name:
+            return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            subtab = serializer.update(serializer)
+        except Exception as e:
+            return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'data': subTab}, status=status.HTTP_201_CREATED)

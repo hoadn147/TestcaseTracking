@@ -164,3 +164,29 @@ class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
         filter.req_id = req_id
         filter.save()
         return data
+
+class TestCaseUpdateSerialize(serializers.ModelSerializer):
+    class Meta:
+        model = subTab
+        fields = ('id', 'req_id', 'testcase_id','testcase_result')
+        
+    def validate(self, attrs):
+        data = self.initial_data
+        subtab_id = data.get('id')
+        try:
+            return subTab.objects.get(pk=subtab_id)
+        except subTab.DoesNotExist as e :
+            raise NotFound(f"{e}") from e
+        
+    def update(self, validated_data):
+        data = self.initial_data
+        id = data.get('id')
+        testcase_id = data.get('testcase_id')
+        req_id = data.get('req_id')
+        testcase_result = data.get('testcase_result')
+        subtab = subTab.objects.get(pk=id)
+        subTab.testcase_id = testcase_id
+        subtab.testcase_result = testcase_result
+        subtab.req_id = req_id
+        subtab.save()
+        return data
