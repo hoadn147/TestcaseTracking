@@ -131,8 +131,6 @@ class FilterRequirementSerializer(serializers.ModelSerializer):
         req_id = data.get('req_id')
         filter_name = data.get('filter_name')
         try:
-            print(parent_tab_name)
-            print(user_id)
             parent_tab = ParentTab.objects.get(user_id=user_id, tab_name=parent_tab_name)
         except ParentTab.DoesNotExist:
             raise APIException("parent tab does not exist")
@@ -145,12 +143,24 @@ class FilterRequirementSerializer(serializers.ModelSerializer):
 
 class FilterRequirementUpdateSerialize(serializers.ModelSerializer):
     class Meta:
-        models = requirementFilter
+        model = requirementFilter
         fields = ('id', 'req_id', 'filter_name', 'parent_tab_id')
         
     def validate(self, attrs):
-        filter_id = attrs.get('id')
+        data = self.initial_data
+        filter_id = data.get('id')
         try:
             return requirementFilter.objects.get(pk=filter_id)
         except requirementFilter.DoesNotExist as e :
             raise NotFound(f"{e}") from e
+        
+    def update(self, validated_data):
+        data = self.initial_data
+        id = data.get('id')
+        req_id = data.get('req_id')
+        filter_name = data.get('filter_name')
+        filter = requirementFilter.objects.get(pk=id)
+        filter.filter_name = filter_name
+        filter.req_id = req_id
+        filter.save()
+        return data

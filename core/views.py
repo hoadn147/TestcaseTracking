@@ -139,3 +139,19 @@ class FilterRequirementView(generics.GenericAPIView):
 class FilterRequirementUpdateView(generics.GenericAPIView):
     serializer_class = FilterRequirementUpdateSerialize
     renderer_classes = [CustomRenderer]
+    
+    def post(self, request): 
+        data = request.data
+        user_id = data.get('user_id')
+        parent_tab_name = data.get('parent_tab_name')
+        
+        if not user_id or not parent_tab_name:
+            return Response({'exception': 'user_id and parent_tab_name are required for receiving single filter'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.serializer_class(data=data)
+        serializer.is_valid(raise_exception=True)
+        try:
+            filter = serializer.update(serializer)
+        except Exception as e:
+            return Response({'data': None, 'exception': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'data': filter}, status=status.HTTP_201_CREATED)
