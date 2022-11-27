@@ -212,7 +212,7 @@ class SubTabSearchView(generics.GenericAPIView):
                                               parent_tab__tab_name=parent_tab_name,)
         elif not filter_name:
             query_set = subTab.objects.filter(parent_tab__user_id=user_id,
-                                              parent_tab__tab_name=parent_tab_name, req_id__in=req_id.split(','))
+                                              parent_tab__tab_name=parent_tab_name, req_id__icontains=req_id)
         elif not req_id:
             req_filter = requirementFilter.objects.get(
                 filter_name=filter_name, parent_tab__tab_name=parent_tab_name)
