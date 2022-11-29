@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
-from .constants import parentTabChoices, parent_tab_name
+from .constants import parentTabChoices, parent_tab_name, testCaseResult
 
 
 class User(AbstractBaseUser):
@@ -35,7 +35,7 @@ class ParentTab(models.Model):
 class subTab(models.Model):
     testcase_id = models.TextField(max_length=255, null=False)
     req_id = models.TextField(max_length=255, null=False)
-    testcase_result = models.TextField(max_length=255, null=False)
+    testcase_result = models.TextField(choices=testCaseResult.choices, null=False)
     parent_tab = models.ForeignKey(
         ParentTab, on_delete=models.CASCADE, related_name='sub_tab', null=False)
 
